@@ -12,14 +12,23 @@ router.get("/", async (req, res) => {
 });
 
 router.post("/add", async (req, res) => {
-  const student = new Student({
-    name: req.body?.name,
-    age: req.body?.age,
-    gender: req.body?.gender,
-  });
   try {
-    const stud = await student.save();
-    res.json(stud);
+    const alreadyexist = await Student.find({ name: req.body.name });
+    if (alreadyexist.length) {
+      res.send({
+        data: {
+          message: "Student name already exist",
+        },
+      });
+      return;
+    }
+    const student = new Student({
+      name: req.body?.name,
+      age: req.body?.age,
+      gender: req.body?.gender,
+    });
+    const students = await student.save();
+    res.json(students);
   } catch (error) {
     res.send(error);
   }
@@ -41,6 +50,23 @@ router.patch("/:name", async (req, res) => {
     student.age = req.body.age;
     const edit = await student.save();
     res.send(edit);
+  } catch (error) {
+    res.send(error);
+  }
+});
+
+router.delete("/delete", async (req, res) => {
+  try {
+    const student = await Student.deleteMany({ name: req.body.name });
+    if (student.length) {
+      res.send({
+        data: {
+          message: "Successfully Deleted",
+        },
+      });
+      return;
+    }
+    res.send({ data: { message: "Student not Found" } });
   } catch (error) {
     res.send(error);
   }
